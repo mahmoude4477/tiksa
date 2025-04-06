@@ -1,63 +1,81 @@
-import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function PaymentScreen() {
-  const { matchId, seat, block } = useLocalSearchParams();
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvv, setCvv] = useState('');
+export default function PaymentPage() {
+  const [selectedMethod, setSelectedMethod] = useState('card');
+  const router = useRouter();
 
-  const handlePayment = () => {
-    if (cardNumber.length < 16 || expiry.length < 5 || cvv.length < 3) {
-      Alert.alert('Payment Error', 'Please enter valid card details.');
-      return;
-    }
-
-    // Simulate Payment Process
-    setTimeout(() => {
-      Alert.alert('Payment Successful', 'Your ticket has been booked!', [
-        // { text: 'OK', onPress: () => router.push('/(matches)/confirmation') },
-      ]);
-    }, 2000);
-  };
+  const paymentMethods = [
+    { id: 'apple', name: 'Apple Pay', logo: require('../../assets/payment/apple.jpg') },
+    {
+      id: 'card',
+      name: 'Pay by Debit/ Credit Card',
+      logo: require('../../assets/payment/mastercard.png'),
+    },
+  ];
 
   return (
-    <View className="flex-1 bg-white p-4">
-      <Text className="text-center text-2xl font-bold">Payment</Text>
-      <Text className="mt-2 text-center text-gray-600">
-        Match ID: {matchId} | Block: {block} | Seat: {seat}
-      </Text>
+    <ScrollView className="flex-1 bg-white p-4">
+      {/* Header */}
 
-      {/* Card Input */}
-      <Text className="mt-6 text-lg font-bold">Enter Card Details:</Text>
-      <TextInput
-        placeholder="Card Number"
-        keyboardType="numeric"
-        maxLength={16}
-        className="mt-2 rounded border border-gray-300 p-2"
-        onChangeText={setCardNumber}
-      />
-      <TextInput
-        placeholder="Expiry (MM/YY)"
-        maxLength={5}
-        className="mt-2 rounded border border-gray-300 p-2"
-        onChangeText={setExpiry}
-      />
-      <TextInput
-        placeholder="CVV"
-        keyboardType="numeric"
-        maxLength={3}
-        className="mt-2 rounded border border-gray-300 p-2"
-        secureTextEntry
-        onChangeText={setCvv}
-      />
-      {/* Pay Button */}
+      {/* Payment Method Title */}
+      <View className="mb-4 flex-row items-center justify-between">
+        <Text className="text-lg font-bold">Payment Method</Text>
+        <TouchableOpacity>
+          <Text className="font-semibold text-blue-300">Add New Card</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Payment Options */}
+      {paymentMethods.map((method) => (
+        <TouchableOpacity
+          key={method.id}
+          onPress={() => setSelectedMethod(method.id)}
+          className={`mb-4 flex-row items-center justify-between rounded-2xl border p-4 ${
+            selectedMethod === method.id ? 'border-blue-400' : 'border-gray-300'
+          }`}>
+          <View className="flex-row items-center space-x-4">
+            <Image source={method.logo} className="h-6 w-6" resizeMode="contain" />
+            <Text className="text-base">{method.name}</Text>
+          </View>
+
+          <View
+            className={`h-5 w-5 rounded-full border-2 ${
+              selectedMethod === method.id ? 'border-blue-400 bg-blue-400' : 'border-gray-300'
+            } items-center justify-center`}>
+            {selectedMethod === method.id && <View className="h-2 w-2 rounded-full bg-white" />}
+          </View>
+        </TouchableOpacity>
+      ))}
+
+      {/* Card Details (only if Debit/Credit Card selected) */}
+      {selectedMethod === 'card' && (
+        <View className="mb-6 flex-row items-center space-x-4 rounded-2xl border border-blue-400 p-4">
+          <Image
+            source={require('../../assets/payment/mastercard.png')}
+            className="h-6 w-10"
+            resizeMode="contain"
+          />
+          <Text className="text-lg font-semibold tracking-widest">•••• •••• •••• 0231</Text>
+        </View>
+      )}
+
+      {/* Add Voucher */}
+      <Text className="mb-2 text-lg font-bold">Add Voucher</Text>
+      <View className="mb-6 flex-row items-center overflow-hidden rounded-2xl border border-gray-300">
+        <TextInput placeholder="VOUCHER CODE" className="flex-1 p-4" />
+        <TouchableOpacity className="bg-blue-400 p-4">
+          <Text className="font-bold text-white">APPLY</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Checkout Button */}
       <TouchableOpacity
-        className="mt-6 w-full rounded-lg bg-green-600 p-4 shadow-md"
-        onPress={handlePayment}>
-        <Text className="text-center font-bold text-white">Pay Now</Text>
+        className="items-center rounded-2xl bg-blue-400 p-4"
+        onPress={() => router.push('/(matches)/SuccessPage')}>
+        <Text className="text-lg font-bold text-white">CHECKOUT</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
